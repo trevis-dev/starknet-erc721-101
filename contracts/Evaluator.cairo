@@ -12,10 +12,10 @@ from contracts.utils.ex00_base import (
     distribute_points,
     ex_initializer,
     has_validated_exercise,
-    validate_exercice
+    validate_exercise
 )
 from contracts.token.ERC721.IERC721 import IERC721
-from contracts.IExerciceSolution import IExerciceSolution
+from contracts.IExerciseSolution import IExerciseSolution
 from starkware.starknet.common.syscalls import (get_contract_address, get_caller_address)
 from starkware.cairo.common.uint256 import (
     Uint256, uint256_add, uint256_sub, uint256_le, uint256_lt, uint256_check, uint256_eq
@@ -103,8 +103,8 @@ end
 #
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-	_tderc20_address : felt, 
-	_dummy_token_address: felt, 
+	    _tderc20_address : felt, 
+	    _dummy_token_address: felt, 
         _players_registry: felt, 
         _workshop_id: felt):
     ex_initializer(_tderc20_address, _players_registry, _workshop_id)
@@ -126,19 +126,19 @@ func ex1_test_erc721{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 	let (sender_address) = get_caller_address()
 	let token_id: Uint256 = Uint256(1,0)
 	# Retrieve exercise address
-	let (submited_exercise_address) = player_exercise_solution_storage.read(sender_address)
+	let (submitted_exercise_address) = player_exercise_solution_storage.read(sender_address)
 
 	# Reading evaluator address
 	let (evaluator_address) = get_contract_address()
 	# Reading who owns token 1 of exercise
-	let (token_1_owner_init) = IERC721.ownerOf(contract_address = submited_exercise_address, token_id = token_id)
+	let (token_1_owner_init) = IERC721.ownerOf(contract_address = submitted_exercise_address, token_id = token_id)
 	# Verifying that token 1 belongs to evaluator
 	assert evaluator_address = token_1_owner_init
 
 	# Reading balance of evaluator in exercise
-	let (evaluator_init_balance) = IERC721.balanceOf(contract_address = submited_exercise_address, owner = evaluator_address)
+	let (evaluator_init_balance) = IERC721.balanceOf(contract_address = submitted_exercise_address, owner = evaluator_address)
 	# Reading balance of msg sender in exercise
-	let (sender_init_balance) = IERC721.balanceOf(contract_address = submited_exercise_address, owner = evaluator_address)
+	let (sender_init_balance) = IERC721.balanceOf(contract_address = submitted_exercise_address, owner = evaluator_address)
 
 	# Instanciating a zero in uint format
 	let zero_as_uint256: Uint256 = Uint256(0,0)
@@ -146,14 +146,14 @@ func ex1_test_erc721{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 	assert is_equal = 0
 
 	# Check that token 1 can be transferred back to msg.sender
-	IERC721.transferFrom(contract_address = submited_exercise_address, _from=evaluator_address, to=sender_address, token_id = token_id)
+	IERC721.transferFrom(contract_address = submitted_exercise_address, _from=evaluator_address, to=sender_address, token_id = token_id)
 
 	# Reading balance of msg sender after transfer
-	let (sender_end_balance) = IERC721.balanceOf(contract_address = submited_exercise_address, owner = evaluator_address)
+	let (sender_end_balance) = IERC721.balanceOf(contract_address = submitted_exercise_address, owner = evaluator_address)
 	# Reading balance of evaluator after transfer
-	let (evaluator_end_balance) = IERC721.balanceOf(contract_address = submited_exercise_address, owner = evaluator_address)
+	let (evaluator_end_balance) = IERC721.balanceOf(contract_address = submitted_exercise_address, owner = evaluator_address)
 	# Reading who owns token 1 of exercise
-	let (token_1_owner_end) = IERC721.ownerOf(contract_address = submited_exercise_address, token_id = token_id)
+	let (token_1_owner_end) = IERC721.ownerOf(contract_address = submitted_exercise_address, token_id = token_id)
 	# Verifying that token 1 belongs to sender
 	assert token_1_owner_end = sender_address
 	# I need value 1 in the uint format to be able to substract it, and add it, to compare balances
@@ -177,7 +177,7 @@ func ex1_test_erc721{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
 	if has_validated == 0:
 		# player has validated
-		validate_exercice(sender_address, 1)
+		validate_exercise(sender_address, 1)
 		# Sending points
 		distribute_points(sender_address, 2)
 	end
@@ -216,11 +216,11 @@ func ex3_declare_new_animal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
 	# Reading caller address
 	let (sender_address) = get_caller_address()
 	# Retrieve exercise address
-	let (submited_exercise_address) = player_exercise_solution_storage.read(sender_address)
+	let (submitted_exercise_address) = player_exercise_solution_storage.read(sender_address)
 	# Reading evaluator address
 	let (evaluator_address) = get_contract_address()
 	# Reading balance of evaluator in exercise
-	let (evaluator_init_balance) = IERC721.balanceOf(contract_address = submited_exercise_address, owner = evaluator_address)
+	let (evaluator_init_balance) = IERC721.balanceOf(contract_address = submitted_exercise_address, owner = evaluator_address)
 	# Requesting new attributes
 	ex2a_get_animal_rank_internal(sender_address)
 
@@ -230,7 +230,7 @@ func ex3_declare_new_animal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
 	let (expected_wings) = assigned_wings_number(sender_address)
 
 	# Declaring a new animal with the desired parameters
-	let (created_token) = IExerciceSolution.declare_animal(contract_address = submited_exercise_address, sex=expected_sex, legs=expected_legs, wings=expected_wings)
+	let (created_token) = IExerciseSolution.declare_animal(contract_address = submitted_exercise_address, sex=expected_sex, legs=expected_legs, wings=expected_wings)
 
 	# Checking that the animal was declared correctly. We basically reuse ex2 lol
 	# If it wasn't done correctly, this should fail
@@ -247,7 +247,7 @@ func ex3_declare_new_animal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
 
 	if has_validated == 0:
 		# player has validated
-		validate_exercice(sender_address, 3)
+		validate_exercise(sender_address, 3)
 		# Sending points
 		distribute_points(sender_address, 2)
 	end
@@ -261,20 +261,20 @@ func ex4_declare_dead_animal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
 	# Reading caller address
 	let (sender_address) = get_caller_address()
 	# Retrieve exercise address
-	let (submited_exercise_address) = player_exercise_solution_storage.read(sender_address)
+	let (submitted_exercise_address) = player_exercise_solution_storage.read(sender_address)
 	# Reading evaluator address
 	let (evaluator_address) = get_contract_address()
 	# Getting initial token balance. Must be at least 1
-	let (evaluator_init_balance) = IERC721.balanceOf(contract_address = submited_exercise_address, owner = evaluator_address)
+	let (evaluator_init_balance) = IERC721.balanceOf(contract_address = submitted_exercise_address, owner = evaluator_address)
 
 	# Getting an animal id of Evaluator. tokenOfOwnerByIndex should return the list of NFTs owned by and address
-	let (token_id) = IExerciceSolution.token_of_owner_by_index(contract_address = submited_exercise_address, account=evaluator_address, index=0)
+	let (token_id) = IExerciseSolution.token_of_owner_by_index(contract_address = submitted_exercise_address, account=evaluator_address, index=0)
 
 	# Declaring it as dead
-	IExerciceSolution.declare_dead_animal(contract_address = submited_exercise_address, token_id=token_id)
+	IExerciseSolution.declare_dead_animal(contract_address = submitted_exercise_address, token_id=token_id)
 
 	# Checking end balance
-	let (evaluator_end_balance) = IERC721.balanceOf(contract_address = submited_exercise_address, owner = evaluator_address)
+	let (evaluator_end_balance) = IERC721.balanceOf(contract_address = submitted_exercise_address, owner = evaluator_address)
 	# I need value 1 in the uint format to be able to substract it, and add it, to compare balances
 	let one_as_uint256: Uint256 = Uint256(1,0)
 	# Store expected balance in a variable, since I can't use everything on a single line
@@ -285,7 +285,7 @@ func ex4_declare_dead_animal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
 
 	# Check that properties are deleted
 	# Reading animal characteristic in player solution
-	let (read_sex, read_legs, read_wings) = IExerciceSolution.get_animal_characteristics(contract_address = submited_exercise_address, token_id=token_id)
+	let (read_sex, read_legs, read_wings) = IExerciseSolution.get_animal_characteristics(contract_address = submitted_exercise_address, token_id=token_id)
 	# Checking characteristics are correct
 	assert read_sex = 0
 	assert read_legs = 0
@@ -302,7 +302,7 @@ func ex4_declare_dead_animal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
 
 	if has_validated == 0:
 		# player has validated
-		validate_exercice(sender_address, 4)
+		validate_exercise(sender_address, 4)
 		# Sending points
 		distribute_points(sender_address, 2)
 	end
@@ -334,7 +334,7 @@ func ex5a_i_have_dtk{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
 	if has_validated == 0:
 		# player has validated
-		validate_exercice(sender_address, 51)
+		validate_exercise(sender_address, 51)
 		# Sending points
 		distribute_points(sender_address, 2)
 	end
@@ -348,27 +348,27 @@ func ex5b_register_breeder{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
 	# Reading caller address
 	let (sender_address) = get_caller_address()
 	# Retrieve exercise address
-	let (submited_exercise_address) = player_exercise_solution_storage.read(sender_address)
+	let (submitted_exercise_address) = player_exercise_solution_storage.read(sender_address)
 	# Get evaluator address
 	let (evaluator_address) = get_contract_address()
 	# Is evaluator currently a breeder?
-	let (is_evaluator_breeder_init) = IExerciceSolution.is_breeder(contract_address = submited_exercise_address, account = evaluator_address)
+	let (is_evaluator_breeder_init) = IExerciseSolution.is_breeder(contract_address = submitted_exercise_address, account = evaluator_address)
 	assert is_evaluator_breeder_init = 0
 	# TODO test that evaluator can not yet declare an animal (requires try/catch)
 
 	# Reading registration price. Registration is payable in dummy token
-	let (registration_price) = IExerciceSolution.registration_price(contract_address = submited_exercise_address)
+	let (registration_price) = IExerciseSolution.registration_price(contract_address = submitted_exercise_address)
 	# Reading evaluator balance in dummy token
 	let (dummy_token_address) = dummy_token_address_storage.read()
 	let (dummy_token_init_balance) = IERC20.balanceOf(contract_address = dummy_token_address, account=evaluator_address)
-	# Approve the exercice for spending my dummy tokens
-	IERC20.approve(contract_address = dummy_token_address, spender=submited_exercise_address, amount=registration_price)
+	# Approve the exercise for spending my dummy tokens
+	IERC20.approve(contract_address = dummy_token_address, spender=submitted_exercise_address, amount=registration_price)
 
 	# Require breeder permission.
-	IExerciceSolution.register_me_as_breeder(contract_address = submited_exercise_address)
+	IExerciseSolution.register_me_as_breeder(contract_address = submitted_exercise_address)
 
 	# Check that I am indeed a breeder
-	let (is_evaluator_breeder_end) = IExerciceSolution.is_breeder(contract_address = submited_exercise_address, account = evaluator_address)
+	let (is_evaluator_breeder_end) = IExerciseSolution.is_breeder(contract_address = submitted_exercise_address, account = evaluator_address)
 	assert is_evaluator_breeder_end = 1
 
 	# Check that my balance has been updated
@@ -388,7 +388,7 @@ func ex5b_register_breeder{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
 
 	if has_validated == 0:
 		# player has validated
-		validate_exercice(sender_address, 52)
+		validate_exercise(sender_address, 52)
 		# Sending points
 		distribute_points(sender_address, 2)
 	end
@@ -417,7 +417,7 @@ func submit_exercise{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
 	if has_validated == 0:
 		# player has validated
-		validate_exercice(sender_address, 0)
+		validate_exercise(sender_address, 0)
 		# Sending points
 		# setup points
 		distribute_points(sender_address, 2)
@@ -462,16 +462,16 @@ func ex2b_test_declare_animal_internal{syscall_ptr : felt*, pedersen_ptr : HashB
 	let (expected_wings) = assigned_wings_number(sender_address)
 
 	# Retrieve exercise address
-	let (submited_exercise_address) = player_exercise_solution_storage.read(sender_address)
+	let (submitted_exercise_address) = player_exercise_solution_storage.read(sender_address)
 	# Get current contract address
 	let (evaluator_address) = get_contract_address()
 	# Reading who owns token 1 of exercise
-	let (token_owner) = IERC721.ownerOf(contract_address = submited_exercise_address, token_id = token_id)
+	let (token_owner) = IERC721.ownerOf(contract_address = submitted_exercise_address, token_id = token_id)
 	# Verifying that token 1 belongs to evaluator
 	assert evaluator_address = token_owner
 
 	# Reading animal characteristic in player solution
-	let (read_sex, read_legs, read_wings) = IExerciceSolution.get_animal_characteristics(contract_address = submited_exercise_address, token_id=token_id)
+	let (read_sex, read_legs, read_wings) = IExerciseSolution.get_animal_characteristics(contract_address = submitted_exercise_address, token_id=token_id)
 	# Checking characteristics are correct
 	assert read_sex = expected_sex
 	assert read_legs = expected_legs
@@ -486,7 +486,7 @@ func ex2b_test_declare_animal_internal{syscall_ptr : felt*, pedersen_ptr : HashB
 
 	if has_validated == 0:
 		# player has validated
-		validate_exercice(sender_address, 2)
+		validate_exercise(sender_address, 2)
 		# Sending points
 		distribute_points(sender_address, 2)
 	end
@@ -494,7 +494,7 @@ func ex2b_test_declare_animal_internal{syscall_ptr : felt*, pedersen_ptr : HashB
 end
 #
 # External functions - Administration
-# Only admins can call these. You don't need to understand them to finish the exercice.
+# Only admins can call these. You don't need to understand them to finish the exercise.
 #
 
 @external
